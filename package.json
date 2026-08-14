@@ -1,0 +1,48 @@
+{
+  "name": "dsh-plugin-cockpit",
+  "description": "Personal Cockpit workbench as a DSH plugin: business REST (navigation/tasks/resources/warehouse/vault), SQLite data layer, MCP tool surface, and the workbench web UI — without the Pi agent module",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "web/dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:web": "npm --prefix web run build",
+    "build:all": "npm run build && npm run build:web",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "tsx src/dev.ts"
+  },
+  "dependencies": {
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/multipart": "^10.1.0",
+    "@fastify/static": "^10.1.2",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^12.0.0",
+    "dotenv": "^17.0.0",
+    "fastify": "^5.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}
