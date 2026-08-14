@@ -41,7 +41,7 @@ const DEFAULT_OPTIONS: Required<Pick<CockpitPluginOptions, "mcpEnabled" | "serve
 export function apply(
   ctx: import("@deepseek-ai/cordis").Context,
   rawOptions: CockpitPluginOptions = {},
-): () => Promise<void> {
+): void {
   const options: CockpitPluginOptions & typeof DEFAULT_OPTIONS = {
     ...DEFAULT_OPTIONS,
     ...rawOptions,
@@ -49,44 +49,49 @@ export function apply(
 
   let built: BuiltCockpitApp | null = null;
 
-  const start = async (): Promise<void> => {
-    const config = resolveConfig(options);
-    // 业务模块（warehouse/exclude-store/capabilities 等）经 loadConfig() 读取
-    setActiveConfig(config);
+  // 注意：cordis-plugin-loader 的 entry 加载路径不收集 apply 返回值作为 disposer
+  // （与直接 ctx.plugin() 不同），清理必须经 ctx.effect 注册 —— 与 DSH 官方插件一致。
+  ctx.effect(() => {
+    const start = async (): Promise<void> => {
+      const config = resolveConfig(options);
+      // 业务模块（warehouse/exclude-store/capabilities 等）经 loadConfig() 读取
+      setActiveConfig(config);
 
-    const app = await buildApp({
-      config,
-      serveStaticWeb: options.serveStaticWeb,
-    });
-    const database: CockpitDatabase = app.cockpitDatabase;
-    built = { app, database, ownsDatabase: true };
+      const app = await buildApp({
+        config,
+        serveStaticWeb: options.serveStaticWeb,
+      });
+      const database: CockpitDatabase = app.cockpitDatabase;
+      built = { app, database, ownsDatabase: true };
 
-    if (options.mcpEnabled) {
-      registerMcpServer(app, { database, config });
-    }
-
-    await app.listen({ host: config.host, port: config.port });
-    logger.info(
-      { host: config.host, port: config.port, dataDir: config.dataRoot, mcp: options.mcpEnabled },
-      "dsh-plugin-cockpit 工作台已启动",
-    );
-  };
-
-  void start().catch((error) => {
-    logger.error(error instanceof Error ? error : new Error(String(error)), "dsh-plugin-cockpit 启动失败");
-  });
-
-  // 插件卸载时关闭 Fastify（Cordis fiber 会收集 apply 返回值作为 disposer）
-  return async () => {
-    if (built) {
-      try {
-        await built.app.close();
-      } catch (error) {
-        logger.error(error instanceof Error ? error : new Error(String(error)), "dsh-plugin-cockpit 关闭异常");
+      if (options.mcpEnabled) {
+        registerMcpServer(app, { database, config });
       }
-      built = null;
-    }
-  };
+
+      await app.listen({ host: config.host, port: config.port });
+      logger.info(
+        { host: config.host, port: config.port, dataDir: config.dataRoot, mcp: options.mcpEnabled },
+        "dsh-plugin-cockpit 工作台已启动",
+      );
+    };
+
+    void start().catch((error) => {
+      logger.error(error instanceof Error ? error : new Error(String(error)), "dsh-plugin-cockpit 启动失败");
+    });
+
+    // 插件卸载（含 loader entry 移除/更新）时关闭 Fastify
+    return async () => {
+      if (built) {
+        try {
+          await built.app.close();
+          logger.info({}, "dsh-plugin-cockpit 工作台已关闭");
+        } catch (error) {
+          logger.error(error instanceof Error ? error : new Error(String(error)), "dsh-plugin-cockpit 关闭异常");
+        }
+        built = null;
+      }
+    };
+  });
 }
 
 export const name = "dsh-plugin-cockpit";

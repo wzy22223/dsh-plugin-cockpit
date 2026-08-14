@@ -16,24 +16,30 @@ MCP 客户端、上网工具（DSH 宿主自带 web 与记忆体系）、蒲公�
 ## 安装（另一台已装 DSH 的机器）
 
 ```bash
-# 1. 拉取插件
+# 1. 拉取插件并装进 DSH 的 profile 依赖区（DSH 加载器从 profiles/node_modules 解析包名）
 git clone https://github.com/wzy22223/dsh-plugin-cockpit.git
 cd dsh-plugin-cockpit
 npm install            # 含 better-sqlite3 原生编译（用运行 DSH 的 node 执行）
 npm run build:all      # 编译 lib + 构建前端 web/dist
+# 让 DSH 能解析包名（二选一）：
+#   a) 拷到依赖区：  cp -r . ~/.dsh/profiles/node_modules/dsh-plugin-cockpit
+#   b) 软链接：      ln -s "$PWD" ~/.dsh/profiles/node_modules/dsh-plugin-cockpit
 
-# 2. 配置 DSH 组合（~/.dsh/profiles/web/cordis.patch.yml）
-#    追加：
-#   - id: cockpit
-#     name: dsh-plugin-cockpit
-#     config:
-#       dataDir: /path/to/your/userdata   # 指向已有工作台数据；省略 = 插件目录内 userdata/
-#       port: 7799                        # 默认 7799
+# 2. 配置 DSH 组合（~/.dsh/profiles/web/cordis.patch.yml），追加 insert 条目：
+#   - insert:
+#       - id: cockpit
+#         name: dsh-plugin-cockpit
+#         config:
+#           dataDir: /path/to/your/userdata   # 指向已有工作台数据；省略 = 插件目录内 userdata/
+#           port: 7799                        # 默认 7799
 
 # 3. 重启 DSH → 浏览器访问 http://127.0.0.1:7799 即工作台
 #    如需 DSH agent 调用业务工具，在 DSH 侧配置 MCP server：
 #    端点 http://127.0.0.1:7799/mcp （Streamable HTTP，本机）
 ```
+
+> patch 语法说明：`cordis.patch.yml` 是 patch 层（按 id 覆盖/`insert:` 追加），
+> 不是直接 entry 列表——新增插件必须用 `- insert: [...]` 包裹，否则加载器会因找不到目标条目而跳过。
 
 ### 数据目录
 
@@ -71,6 +77,7 @@ npm run build:all      # 编译 lib + 构建前端 web/dist
 ```bash
 npm run dev          # 本地起 7799（COCKPIT_DATA_DIR 可指向测试数据）
 npm run test         # vitest（66 个业务测试）
+npm run smoke        # DSH loader 语义冒烟：按包名加载 → health/MCP 校验 → 卸载清理
 npm run build:all    # lib + web/dist
 ```
 
@@ -80,6 +87,9 @@ npm run build:all    # lib + web/dist
 - ✅ 去 agent：Pi/WS/审批/记忆/技能/角色/MCP 客户端/上网工具/蒲公英已移除，前端 Pi 面板与 Agent 中心已删
 - ✅ MCP 工具面 23 个工具经 `initialize/tools/list/tools/call` 实测（真实 userdata 数据）
 - ✅ 数据目录指向真实 Cockpit `userdata` 零拷贝复用（导航/日程/仓库/资料实测）
+- ✅ **DSH loader 语义验证**：按包名 `dsh-plugin-cockpit` 经 `cordis-plugin-loader` 加载/卸载
+  冒烟通过（`npm run smoke`）；清理走 `ctx.effect`（与 DSH 官方插件一致——
+  loader entry 路径不收集 apply 返回值作为 disposer）
 - ✅ 66 个业务测试 + tsc + 生产构建通过
 - ⏳ DSH client 侧 iframe 视图集成（可选，后续迭代；当前浏览器直访 `http://127.0.0.1:7799`）
 
