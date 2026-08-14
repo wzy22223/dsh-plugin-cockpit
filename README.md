@@ -107,5 +107,12 @@ npm run build:all    # lib + web/dist
 
 ## 与独立版（personal-cockpit）的关系
 
-- 独立版保留，作为开发/对照；本插件是其业务层的 DSH 内嵌形态。
-- 移除项详见上；业务 REST 与前端视图行为一致。
+- **独立版 = 主端，持续正常迭代**。本插件是其业务层的 DSH 内嵌形态，**不取代独立版**。
+- **风险兜底**：DSH 更新或异常时，独立版（`npm run start`，单端口 7777，同一 userdata）随时可用。
+- **同步策略**：插件仓库的 `src/server/`（业务层）与 `web/src/`（前端）自独立版迁移而来；
+  独立版后续更新业务代码后**手动按需同步**到插件（对照目录：`src/server/modules`、
+  `platform`、`scripts`、`migrations`、`web/src`），独立版仍是唯一业务真源。
+- **运行互斥**：避免同一时刻独立版与插件版同时服务同一 `userdata`（SQLite 双进程写锁），
+  用哪个就只开哪个。
+- **DSH 更新注意**：升级 DSH 后需重新 `npm install`（better-sqlite3 匹配新 Node 版本）
+  并跑 `npm run smoke` + `npm run test` 验证。
