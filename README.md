@@ -81,6 +81,17 @@ npm run smoke        # DSH loader 语义冒烟：按包名加载 → health/MCP 
 npm run build:all    # lib + web/dist
 ```
 
+## DSH 界面内嵌视图（已实测）
+
+在 DSH Web GUI 的会话标题栏（chat 旁）新增 **「工作台」tab**，点击即可在 DSH 界面内
+使用工作台（iframe 嵌入插件服务），切换由 shell 原生管理：
+
+- 本机实测方式：用 DSH 的 cordis 动态插件工具加载 `web/client-plugin.js` 的
+  `code.client`（`conversation.view` 插槽注册，id `workbench`，label「工作台」）
+- 源码已入库：`web/client-plugin.js`（含接入注释）
+- 正式随包分发（`exports["./client"]` + `dsh.client` 声明的 `__ModuleLoader__`
+  bundle）需 DSH 构建链生成，属后续迭代
+
 ## 实施状态（2026-08-14）
 
 - ✅ 业务层内嵌插件：进程内 Fastify（REST + 前端 + MCP 端点），数据目录可配置
@@ -90,8 +101,9 @@ npm run build:all    # lib + web/dist
 - ✅ **DSH loader 语义验证**：按包名 `dsh-plugin-cockpit` 经 `cordis-plugin-loader` 加载/卸载
   冒烟通过（`npm run smoke`）；清理走 `ctx.effect`（与 DSH 官方插件一致——
   loader entry 路径不收集 apply 返回值作为 disposer）
+- ✅ **DSH 界面内嵌视图**：会话「工作台」tab 实测可用（动态插件验证），client 源码入库
 - ✅ 66 个业务测试 + tsc + 生产构建通过
-- ⏳ DSH client 侧 iframe 视图集成（可选，后续迭代；当前浏览器直访 `http://127.0.0.1:7799`）
+- ⏳ client 视图正式 bundle 化随包分发（需 DSH 构建链）
 
 ## 与独立版（personal-cockpit）的关系
 
