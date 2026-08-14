@@ -74,6 +74,15 @@ npm run test         # vitest（66 个业务测试）
 npm run build:all    # lib + web/dist
 ```
 
+## 实施状态（2026-08-14）
+
+- ✅ 业务层内嵌插件：进程内 Fastify（REST + 前端 + MCP 端点），数据目录可配置
+- ✅ 去 agent：Pi/WS/审批/记忆/技能/角色/MCP 客户端/上网工具/蒲公英已移除，前端 Pi 面板与 Agent 中心已删
+- ✅ MCP 工具面 23 个工具经 `initialize/tools/list/tools/call` 实测（真实 userdata 数据）
+- ✅ 数据目录指向真实 Cockpit `userdata` 零拷贝复用（导航/日程/仓库/资料实测）
+- ✅ 66 个业务测试 + tsc + 生产构建通过
+- ⏳ DSH client 侧 iframe 视图集成（可选，后续迭代；当前浏览器直访 `http://127.0.0.1:7799`）
+
 ## 与独立版（personal-cockpit）的关系
 
 - 独立版保留，作为开发/对照；本插件是其业务层的 DSH 内嵌形态。
