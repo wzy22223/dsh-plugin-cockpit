@@ -86,6 +86,14 @@ npm run build:all    # lib + web/dist
 在 DSH Web GUI 的会话标题栏（chat 旁）新增 **「工作台」tab**，点击即可在 DSH 界面内
 使用工作台（iframe 嵌入插件服务），切换由 shell 原生管理：
 
+- **全屏铺满**：工作台激活时用 CSS `:has()` 隐藏 DSH 底部 composer 座
+  （`[data-conversation-scroll]:has(.wb-anchor) > [data-composer-seat]`），视图区
+  `flex:1` 自动撑满整列，与 DSH 自身 composer-overlay 的 `:has()` 模式一致；
+  不要用 `position:fixed` 测量定位（DSH 布局含 transform/backdrop-filter，
+  会改变 fixed 包含块，实测不可靠）
+- **悬浮迷你聊天条**：右下角圆钮（默认收起，状态点：灰=空闲/黄=回复中/红=待确认），
+  展开后可直接发消息——走会话标准 props 的 `inputActions.setDraft()/submit()`，
+  草稿与 chat tab 输入框共享同一输入机；agent 回复与审批面板在 chat tab
 - 本机实测方式：用 DSH 的 cordis 动态插件工具加载 `web/client-plugin.js` 的
   `code.client`（`conversation.view` 插槽注册，id `workbench`，label「工作台」）
 - 源码已入库：`web/client-plugin.js`（含接入注释）
